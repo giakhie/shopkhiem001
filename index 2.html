@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Đường dẫn đến file CSS của bạn -->
+    <style>
+        /* CSS để tạo giao diện giỏ hàng */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .category__list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .category__container {
+            flex: 1 1 calc(25% - 20px);
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border-radius: 5px;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .category__container:hover {
+            transform: translateY(-10px);
+        }
+
+        .category__item {
+            position: relative;
+        }
+
+        .category__item-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .category__item-description {
+            padding: 20px;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-bottom-left-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .category__item-description p {
+            margin: 10px 0;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .category__item-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f44336;
+            margin-bottom: 10px;
+        }
+
+        .category__item-rating {
+            color: #f1c40f;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .category__item-user-action {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            text-align: center;
+        }
+
+        .category__item-add-to-cart-button {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            margin-right: 10px;
+            transition: background-color 0.3s ease;
+            text-decoration: none; /* Removed underline from link */
+        }
+
+        .category__item-add-to-cart-button:hover {
+            background-color: #45a049;
+        }
+
+        .category__item-add-to-cart-link {
+            color: #fff;
+            text-decoration: none; /* Removed underline from link */
+        }
+
+        .cart {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .cart-heading {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .cart-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .cart-item img {
+            width: 80px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        .cart-item-description {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-item-description span {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .cart-total {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            text-align: right;
+            color: #333;
+        }
+
+        .checkout-button {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 15px;
+            background-color: #f44336;
+            color: #fff;
+            font-size: 20px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+            text-decoration: none; /* Removed underline from link */
+        }
+
+        .checkout-button:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+    <script>
+        // Khởi tạo mảng để lưu trữ các sản phẩm trong giỏ hàng ảo
+        let cartItems = [];
+
+        // Hàm để thêm sản phẩm vào giỏ hàng
+        function addToCart(event) {
+            event.preventDefault(); // Ngăn chặn hành động mặc định của thẻ <a>
+
+            // Lấy thông tin sản phẩm từ phần tử HTML
+            let productContainer = event.target.closest('.category__item');
+            let productImg = productContainer.querySelector('.category__item-img').getAttribute('src');
+            let productTitle = productContainer.querySelector('.category__item-description p').textContent;
+            let productPrice = productContainer.querySelector('.category__item-price').textContent;
+
+            // Tạo đối tượng sản phẩm
+            let product = {
+                img: productImg,
+                title: productTitle,
+                price: productPrice
+            };
+
+            // Thêm sản phẩm vào giỏ hàng ảo
+            cartItems.push(product);
+
+            // Cập nhật giao diện giỏ hàng
+            updateCartUI();
+        }
+
+        // Hàm để cập nhật giao diện giỏ hàng
+        function updateCartUI() {
+            let cartContainer = document.getElementById('cart-container');
+            cartContainer.innerHTML = ''; // Xóa hết các sản phẩm trong giỏ hàng để cập nhật lại
+
+            // Duyệt qua từng sản phẩm trong giỏ hàng và hiển thị lên giao diện
+            cartItems.forEach((item, index) => {
+                let cartItemElement = document.createElement('div');
+                cartItemElement.classList.add('cart-item');
+
+                let itemImg = document.createElement('img');
+                itemImg.src = item.img;
+                let itemDescription = document.createElement('div');
+                itemDescription.classList.add('cart-item-description');
+                itemDescription.innerHTML = `
+                    <span>${item.title}</span>
+                    <span>${item.price}</span>
+                `;
+
+                cartItemElement.appendChild(itemImg);
+                cartItemElement.appendChild(itemDescription);
+                cartContainer.appendChild(cartItemElement);
+            });
+
+            // Hiển thị tổng số lượng sản phẩm trong giỏ hàng
+            let cartTotalElement = document.getElementById('cart-total');
+            cartTotalElement.textContent = `Tổng số sản phẩm: ${cartItems.length}`;
+        }
+
+        // Hàm xử lý khi người dùng ấn nút Thanh toán
+        function checkout() {
+            // Ví dụ: ở đây bạn có thể thực hiện các hành động như chuyển hướng sang trang thanh toán
+            // hoặc gửi thông tin đơn hàng lên server.
+            alert('Bạn đã thanh toán thành công!');
+            // Sau khi thanh toán thành công, bạn có thể làm sạch giỏ hàng bằng cách reset mảng cartItems
+            cartItems = [];
+            updateCartUI(); // Cập nhật lại giao diện giỏ hàng sau khi thanh toán
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <ul class="category__list">
+        <li class="category__container">
+            <div class="category__item">
+                <img src="assets/img/slide-2/category1.jpg" alt="" class="category__item-img">
+                <div class="category__item-description">
+                    <p>Mô-đun hiện đại</p>
+                    <div class="category__item-price">
+                        <span>$ 600.00</span>
+                    </div>
+                </div>
+                <!-- action add to cart -->
+                <div class="category__item-user-action">
+                    <div class="category__item-add-to-cart-button">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <a href="#" class="category__item-add-to-cart-link" onclick="addToCart(event)">THÊM VÀO GIỎ HÀNG</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <li class="category__container">
+            <div class="category__item">
+                <img src="assets/img/slide-2/category3.jpg" alt="" class="category__item-img">
+                <div class="category__item-description">
+                    <p>Mô-đun hiện đại</p>
+                    <div class="category__item-price">
+                        <p><s>$ 9.00</s></p>
+                        <span>$ 8.00</span>
+                    </div>
+                </div>
+                
+                <!-- action add to cart -->
+                <div class="category__item-user-action">
+                    <div class="category__item-add-to-cart-button">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <a href="#" class="category__item-add-to-cart-link" onclick="addToCart(event)">THÊM VÀO GIỎ HÀNG</a>
+                    </div>
+                </div>
+            </div>
+        </li>
+        <!-- Các sản phẩm khác tương tự -->
+    </ul>
+
+    <!-- Giao diện giỏ hàng -->
+    <div class="cart">
+        <div class="cart-heading">Giỏ hàng của bạn</div>
+        <div id="cart-container">
+            <!-- Các sản phẩm trong giỏ hàng sẽ được thêm vào đây -->
+        </div>
+        <div id="cart-total">Tổng số sản phẩm: 0</div>
+        <a href="#" class="checkout-button" onclick="checkout()">Thanh toán</a>
+    </div>
+</div>
+
+</body>
+</html>
